@@ -1,9 +1,10 @@
 <!--
-  Version: 23.2.0
+  Version: 24.0.0
   Date: 2025-06-14
   Author: Gemini & Folk
   Description:
-    - โค้ดฉบับสมบูรณ์ที่รวมทุกฟังก์ชันและดีไซน์ล่าสุด
+    - เพิ่ม: ระบบแสดงข้อผิดพลาด (Error Handling) ใน JavaScript ให้ละเอียดขึ้น
+    - เพื่อช่วยวินิจฉัยปัญหาการเชื่อมต่อกับเซิร์ฟเวอร์บน Render.com
 -->
 <!DOCTYPE html>
 <html lang="th" class="">
@@ -243,7 +244,6 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         const tagBarContainer = document.getElementById('tag-bar-container');
         const modal = document.getElementById('videoModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
         const toast = document.getElementById('toast-notification');
         let toastTimeout;
         let allVideos = [];
@@ -328,7 +328,10 @@
         async function loadAndRenderSection(tag, container, layoutType) {
             try {
                 const response = await fetch(`/api/videos?tag=${encodeURIComponent(tag)}`);
-                if (!response.ok) throw new Error(`Could not fetch videos for tag: ${tag}`);
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({message: response.statusText}));
+                    throw new Error(`Server error: ${response.status} - ${errData.message}`);
+                }
                 const videos = await response.json();
                 container.innerHTML = '';
                 if (videos.length === 0) {
@@ -337,7 +340,7 @@
                 }
                 videos.forEach(video => container.appendChild(createVideoCard(video, layoutType)));
             } catch (error) {
-                console.error('Error loading section:', error);
+                console.error(`Error loading section '${tag}':`, error);
                 container.innerHTML = `<p class="text-red-500 p-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>`;
             }
         }
@@ -355,6 +358,10 @@
         async function loadTags() {
             try {
                 const response = await fetch('/api/tags');
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({message: response.statusText}));
+                    throw new Error(`Server error: ${response.status} - ${errData.message}`);
+                }
                 const tags = await response.json();
                 tagBarContainer.innerHTML = '';
 
@@ -373,7 +380,7 @@
                 });
             } catch (error) {
                 console.error('Failed to load tags:', error);
-                tagBarContainer.innerHTML = '<p class="text-sm text-white">ไม่สามารถโหลดหมวดหมู่ได้</p>';
+                tagBarContainer.innerHTML = `<p class="text-sm text-red-400 dark:text-red-400">ไม่สามารถโหลดหมวดหมู่ได้: ${error.message}</p>`;
             }
         }
 
@@ -446,8 +453,8 @@
         };
 
         // --- Event Listeners ---
-        closeModalBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModal(); });
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('videoModal').addEventListener('click', (event) => { if (event.target === event.currentTarget) closeModal(); });
         document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !document.getElementById('videoModal').classList.contains('hidden')) closeModal(); });
 
         document.body.addEventListener('click', (event) => {
