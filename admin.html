@@ -150,7 +150,7 @@
 
         async function checkVideoExistence(videoId, statusElement) {
             try {
-                const response = await fetch(`/api/videos/check/${videoId}`);
+                const response = await fetch(`/api/videos/check/${videoId}`); // FIX: Relative path
                 if (!response.ok) return;
                 const data = await response.json();
 
@@ -170,7 +170,7 @@
 
         async function fetchVideoDetails(videoId, formElements) {
             try {
-                const response = await fetch(`/api/youtube-details/${videoId}`);
+                const response = await fetch(`/api/youtube-details/${videoId}`); // FIX: Relative path
                 if (!response.ok) return;
 
                 const data = await response.json();
@@ -318,7 +318,7 @@
         async function loadAdminVideos() {
             showSkeletonLoader();
             try {
-                const response = await fetch('/api/videos');
+                const response = await fetch('/api/videos'); // FIX: Relative path
                 if (!response.ok) throw new Error('Network response was not ok');
                 allVideos = await response.json();
                 renderVideoList(allVideos);
@@ -343,7 +343,7 @@
                 tags: otherTags
             };
             try {
-                const response = await fetch('/api/videos', {
+                const response = await fetch('/api/videos', { // FIX: Relative path
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(videoData)
@@ -418,7 +418,7 @@
                     tags: row.querySelector('.edit-tags-input').value.split(',').map(tag => tag.trim()).filter(Boolean)
                 };
                  try {
-                    const response = await fetch(`/api/videos/${id}`, {
+                    const response = await fetch(`/api/videos/${id}`, { // FIX: Relative path
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updatedData)
@@ -433,7 +433,7 @@
             }
             else if (button.classList.contains('confirm-delete-btn')) {
                 try {
-                    const response = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`/api/videos/${id}`, { method: 'DELETE' }); // FIX: Relative path
                     if (!response.ok) throw new Error('การลบล้มเหลว');
                     showToast('ลบวิดีโอสำเร็จ', 'success');
                     videoItem.remove();
