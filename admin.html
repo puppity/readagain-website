@@ -1,10 +1,10 @@
 <!--
-  Version: 10.0.0 (Admin)
-  Date: 2025-06-12
+  Version: 11.1.0 (Admin)
+  Date: 2025-06-14
   Author: Gemini & Folk
   Description:
-    - เพิ่มระบบตรวจสอบคลิปซ้ำอัตโนมัติเมื่อวางลิงก์หรือกรอก Video ID
-    - แสดงข้อความเตือนและปิดปุ่ม "เพิ่มวิดีโอ" หากพบว่ามีคลิปอยู่แล้ว
+    - แก้ไข: เปลี่ยน API endpoint จาก "http://localhost:3000" เป็น Relative Path ("/api/...")
+    - ทำให้สามารถทำงานบนเซิร์ฟเวอร์จริง (Render.com) ได้อย่างถูกต้อง
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -17,29 +17,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: 'Sarabun', sans-serif; }
-        /* Custom Toast Notification */
         #toast-notification {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-weight: 500;
-            z-index: 100;
-            transition: all 0.5s ease-in-out;
+            position: fixed; bottom: -100px; left: 50%;
+            transform: translateX(-50%); padding: 1rem 1.5rem; border-radius: 0.5rem;
+            color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 500; z-index: 100; transition: all 0.5s ease-in-out;
         }
         #toast-notification.show { bottom: 30px; }
         #toast-notification.success { background-color: #27ae60; }
         #toast-notification.error { background-color: #c0392b; }
         .form-input-inline {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.375rem;
-            transition: border-color 0.2s;
+            width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1;
+            border-radius: 0.375rem; transition: border-color 0.2s;
         }
     </style>
 </head>
@@ -76,8 +65,12 @@
                     <textarea id="description" name="description" rows="4" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="จะถูกดึงข้อมูลอัตโนมัติเมื่อวางลิงก์"></textarea>
                 </div>
                 <div>
-                    <label for="tags" class="block text-sm font-medium text-stone-700 mb-1">Tags (หมวดหมู่)</label>
-                    <input type="text" id="tags" name="tags" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="ใส่ 'แนะนำ' หรือ 'ใหม่' เพื่อจัดหมวดหมู่">
+                    <label for="author" class="block text-sm font-medium text-stone-700 mb-1">ผู้แต่ง (Author)</label>
+                    <input type="text" id="author" name="author" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="เช่น James Clear (ชื่อจะกลายเป็น Tag)">
+                </div>
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-stone-700 mb-1">Tags (หมวดหมู่อื่นๆ)</label>
+                    <input type="text" id="tags" name="tags" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="แนะนำ, ใหม่, ความรัก, จิตวิทยา, พัฒนาตัวเอง">
                 </div>
                 <div>
                     <button type="submit" id="addVideoBtn" class="w-full bg-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
@@ -158,7 +151,7 @@
         async function checkVideoExistence(videoId, statusElement) {
             try {
                 const response = await fetch(`/api/videos/check/${videoId}`);
-                if (!response.ok) return; // Fail silently, let other validation handle it.
+                if (!response.ok) return;
                 const data = await response.json();
 
                 if (data.exists) {
@@ -177,7 +170,7 @@
 
         async function fetchVideoDetails(videoId, formElements) {
             try {
-                const response = await fetch(`http://localhost:3000/api/youtube-details/${videoId}`);
+                const response = await fetch(`/api/youtube-details/${videoId}`);
                 if (!response.ok) return;
 
                 const data = await response.json();
@@ -197,7 +190,7 @@
             previewElement.innerHTML = '';
             statusElement.innerHTML = '';
             inputElement.style.borderColor = '';
-            addVideoBtn.disabled = false; // Enable by default on new input
+            addVideoBtn.disabled = false;
 
             const trimmedId = videoId.trim();
             if (!trimmedId) return;
@@ -219,8 +212,8 @@
                 previewElement.innerHTML = '';
                 img.className = 'rounded-lg w-32 mx-auto shadow-md';
                 previewElement.appendChild(img);
-                await checkVideoExistence(trimmedId, statusElement); // Check if exists
-                if (!addVideoBtn.disabled) { // Only fetch details if not a duplicate
+                await checkVideoExistence(trimmedId, statusElement);
+                if (!addVideoBtn.disabled) {
                     fetchVideoDetails(trimmedId, formElements);
                 }
             };
@@ -325,7 +318,7 @@
         async function loadAdminVideos() {
             showSkeletonLoader();
             try {
-                const response = await fetch('http://localhost:3000/api/videos');
+                const response = await fetch('/api/videos');
                 if (!response.ok) throw new Error('Network response was not ok');
                 allVideos = await response.json();
                 renderVideoList(allVideos);
@@ -338,14 +331,19 @@
         addForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             setButtonLoading(addVideoBtn, 'addBtn-text', 'addBtn-spinner', true);
+            const otherTags = addForm.tags.value.split(',').map(t => t.trim()).filter(Boolean);
+            const authorTag = addForm.author.value.trim();
+            if (authorTag) {
+                otherTags.push(authorTag);
+            }
             const videoData = {
                 videoId: extractVideoId(addForm.videoId.value),
                 title: addForm.title.value,
                 description: addForm.description.value,
-                tags: addForm.tags.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+                tags: otherTags
             };
             try {
-                const response = await fetch('http://localhost:3000/api/videos', {
+                const response = await fetch('/api/videos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(videoData)
@@ -384,14 +382,6 @@
                     titleInput: addForm.title,
                     descriptionInput: addForm.description
                 };
-            } else {
-                const row = inputElement.closest('.edit-mode');
-                previewElement = row ? row.querySelector('.edit-preview-div') : null;
-                statusElement = { innerHTML: '' }; // No status check in edit mode
-                formElements = {
-                    titleInput: row ? row.querySelector('.edit-title-input') : null,
-                    descriptionInput: row ? row.querySelector('.edit-desc-input') : null
-                };
             }
 
             if (previewElement) {
@@ -428,7 +418,7 @@
                     tags: row.querySelector('.edit-tags-input').value.split(',').map(tag => tag.trim()).filter(Boolean)
                 };
                  try {
-                    const response = await fetch(`http://localhost:3000/api/videos/${id}`, {
+                    const response = await fetch(`/api/videos/${id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updatedData)
@@ -443,7 +433,7 @@
             }
             else if (button.classList.contains('confirm-delete-btn')) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/videos/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`/api/videos/${id}`, { method: 'DELETE' });
                     if (!response.ok) throw new Error('การลบล้มเหลว');
                     showToast('ลบวิดีโอสำเร็จ', 'success');
                     videoItem.remove();

@@ -1,9 +1,10 @@
 <!--
-  Version: 22.0.0
-  Date: 2025-06-13
+  Version: 23.0.0
+  Date: 2025-06-14
   Author: Gemini & Folk
   Description:
-    - เพิ่ม Meta Tags (Description, Keywords) และ Structured Data (Schema Markup) เพื่อปรับปรุง SEO
+    - รวมทุกฟังก์ชันและดีไซน์ล่าสุดที่ผู้ใช้ต้องการ
+    - เพิ่ม Meta Tags และ Structured Data เพื่อปรับปรุง SEO
 -->
 <!DOCTYPE html>
 <html lang="th" class="">
@@ -22,13 +23,13 @@
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "ReadAgain",
-      "url": "https://www.yourwebsite.com",
+      "url": "https://readagain-app.onrender.com",
       "description": "คลังสรุปหนังสือในรูปแบบ Podcast และวิดีโอ ย่อยง่าย เข้าใจเร็ว",
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "https://www.yourwebsite.com/search?q={search_term_string}"
+          "urlTemplate": "https://readagain-app.onrender.com/search?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
       }
@@ -243,10 +244,6 @@
         const themeToggleBtn = document.getElementById('theme-toggle');
         const tagBarContainer = document.getElementById('tag-bar-container');
         const modal = document.getElementById('videoModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const modalVideoIframe = document.getElementById('modalVideoIframe');
-        const modalVideoTitle = document.getElementById('modalVideoTitle');
-        const modalVideoDescription = document.getElementById('modalVideoDescription');
         const toast = document.getElementById('toast-notification');
         let toastTimeout;
         let allVideos = [];
@@ -258,13 +255,6 @@
         const searchResultsContainer = document.getElementById('search-results-container');
         const searchTermSpan = document.getElementById('search-term');
         const contentSections = document.querySelectorAll('.content-section');
-
-        // Section containers
-        const recommendedContainer = document.getElementById('recommended-container');
-        const newVideosContainer = document.getElementById('new-videos-container');
-        const selfDevContainer = document.getElementById('self-dev-container');
-        const loveContainer = document.getElementById('love-container');
-        const psychologyContainer = document.getElementById('psychology-container');
 
         // Share button variables
         const shareFacebook = document.getElementById('shareFacebook');
@@ -478,11 +468,11 @@
         // --- Initial Load ---
         fetchAllVideos();
         loadTags();
-        loadAndRenderSection('แนะนำ', recommendedContainer, 'large-carousel');
-        loadAndRenderSection('ใหม่', newVideosContainer, 'small-carousel');
-        loadAndRenderSection('พัฒนาตัวเอง', selfDevContainer, 'small-carousel');
-        loadAndRenderSection('ความรัก', loveContainer, 'small-carousel');
-        loadAndRenderSection('จิตวิทยา', psychologyContainer, 'small-carousel');
+        loadAndRenderSection('แนะนำ', document.getElementById('recommended-container'), 'large-carousel');
+        loadAndRenderSection('ใหม่', document.getElementById('new-videos-container'), 'small-carousel');
+        loadAndRenderSection('พัฒนาตัวเอง', document.getElementById('self-dev-container'), 'small-carousel');
+        loadAndRenderSection('ความรัก', document.getElementById('love-container'), 'small-carousel');
+        loadAndRenderSection('จิตวิทยา', document.getElementById('psychology-container'), 'small-carousel');
     });
     </script>
 </body>
