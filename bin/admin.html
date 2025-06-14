@@ -1,0 +1,253 @@
+<!--
+  Version: 2.0.0 (Admin)
+  Date: 2025-06-12
+  Author: Gemini & Folk
+  Description: เพิ่มส่วนจัดการวิดีโอ (แสดง, แก้ไข, ลบ)
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - ReadAgain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        #editModal.hidden { display: none; }
+    </style>
+</head>
+<body class="bg-stone-100">
+
+    <div class="container mx-auto max-w-4xl py-12 px-4">
+        <!-- ส่วนหัว -->
+        <h1 class="text-3xl font-bold text-stone-800 mb-2">ReadAgain Admin Panel</h1>
+        <p class="text-stone-600 mb-8">หน้าสำหรับจัดการข้อมูลวิดีโอในระบบ</p>
+
+        <!-- ส่วนฟอร์มสำหรับเพิ่มวิดีโอ -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-semibold text-stone-700 border-b pb-2 mb-6">เพิ่มวิดีโอใหม่</h2>
+            <form id="addVideoForm" class="bg-white p-8 rounded-lg shadow-md space-y-6">
+                <!-- ฟอร์มเพิ่มวิดีโอ (เหมือนเดิม) -->
+                <div>
+                    <label for="videoId" class="block text-sm font-medium text-stone-700 mb-1">Video ID*</label>
+                    <input type="text" id="videoId" name="videoId" required class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="เช่น aP9ifCy87O8">
+                    <p class="text-xs text-stone-500 mt-1">คือรหัสที่อยู่หลัง `v=` ในลิงก์ YouTube</p>
+                </div>
+
+                <div>
+                    <label for="title" class="block text-sm font-medium text-stone-700 mb-1">ชื่อคลิป (Title)*</label>
+                    <input type="text" id="title" name="title" required class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="สรุปหนังสือ Rich Dad Poor Dad">
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-stone-700 mb-1">คำอธิบาย (Description)</label>
+                    <textarea id="description" name="description" rows="4" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="คำอธิบายสั้นๆ เกี่ยวกับวิดีโอ..."></textarea>
+                </div>
+
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-stone-700 mb-1">Tags (หมวดหมู่)</label>
+                    <input type="text" id="tags" name="tags" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="การเงิน, การลงทุน, พัฒนาตัวเอง">
+                    <p class="text-xs text-stone-500 mt-1">ใส่แต่ละ tag คั่นด้วยเครื่องหมายจุลภาค (comma ,)</p>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full bg-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors">
+                        เพิ่มวิดีโอ
+                    </button>
+                </div>
+            </form>
+            <div id="addStatusMessage" class="mt-4 text-center"></div>
+        </div>
+
+        <!-- ส่วนจัดการวิดีโอที่มีอยู่ -->
+        <div>
+            <h2 class="text-2xl font-semibold text-stone-700 border-b pb-2 mb-6">จัดการวิดีโอทั้งหมด</h2>
+            <div id="video-management-list" class="space-y-4">
+                <!-- รายการวิดีโอจะถูกโหลดมาที่นี่ -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับแก้ไขวิดีโอ -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl">
+            <form id="editVideoForm">
+                <div class="p-8 space-y-6">
+                    <h2 class="text-2xl font-bold text-stone-800">แก้ไขข้อมูลวิดีโอ</h2>
+                    <input type="hidden" id="edit-id">
+                    <div>
+                        <label for="edit-videoId" class="block text-sm font-medium text-stone-700 mb-1">Video ID*</label>
+                        <input type="text" id="edit-videoId" required class="w-full px-3 py-2 border border-stone-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-title" class="block text-sm font-medium text-stone-700 mb-1">ชื่อคลิป (Title)*</label>
+                        <input type="text" id="edit-title" required class="w-full px-3 py-2 border border-stone-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="edit-description" class="block text-sm font-medium text-stone-700 mb-1">คำอธิบาย (Description)</label>
+                        <textarea id="edit-description" rows="4" class="w-full px-3 py-2 border border-stone-300 rounded-md"></textarea>
+                    </div>
+                    <div>
+                        <label for="edit-tags" class="block text-sm font-medium text-stone-700 mb-1">Tags (หมวดหมู่)</label>
+                        <input type="text" id="edit-tags" class="w-full px-3 py-2 border border-stone-300 rounded-md">
+                    </div>
+                </div>
+                <div class="bg-stone-50 px-8 py-4 flex justify-end gap-4 rounded-b-lg">
+                    <button type="button" id="cancelEditBtn" class="bg-white text-stone-700 px-4 py-2 rounded-md border">ยกเลิก</button>
+                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-md">บันทึกการเปลี่ยนแปลง</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- ตัวแปร ---
+        const addForm = document.getElementById('addVideoForm');
+        const addStatusMessage = document.getElementById('addStatusMessage');
+        const videoListDiv = document.getElementById('video-management-list');
+        const editModal = document.getElementById('editModal');
+        const editForm = document.getElementById('editVideoForm');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        // --- ฟังก์ชัน ---
+        // โหลดและแสดงรายการวิดีโอ
+        async function loadAdminVideos() {
+            try {
+                const response = await fetch('http://localhost:3000/api/videos');
+                const videos = await response.json();
+                videoListDiv.innerHTML = '';
+                videos.forEach(video => {
+                    const videoEl = document.createElement('div');
+                    videoEl.className = 'bg-white p-4 rounded-lg shadow-sm flex justify-between items-center';
+                    videoEl.innerHTML = `
+                        <div>
+                            <p class="font-bold text-stone-800">${video.title}</p>
+                            <p class="text-sm text-stone-500">ID: ${video.videoId}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="edit-btn text-blue-600 hover:text-blue-800" data-id="${video._id}"><i class="fas fa-edit"></i> แก้ไข</button>
+                            <button class="delete-btn text-red-600 hover:text-red-800" data-id="${video._id}"><i class="fas fa-trash"></i> ลบ</button>
+                        </div>
+                    `;
+                    videoListDiv.appendChild(videoEl);
+                });
+            } catch (error) {
+                videoListDiv.innerHTML = `<p class="text-red-600">ไม่สามารถโหลดรายการวิดีโอได้</p>`;
+            }
+        }
+
+        // เปิด Modal แก้ไข
+        function openEditModal(video) {
+            document.getElementById('edit-id').value = video._id;
+            document.getElementById('edit-videoId').value = video.videoId;
+            document.getElementById('edit-title').value = video.title;
+            document.getElementById('edit-description').value = video.description || '';
+            document.getElementById('edit-tags').value = (video.tags || []).join(', ');
+            editModal.classList.remove('hidden');
+        }
+
+        // ปิด Modal แก้ไข
+        function closeEditModal() {
+            editModal.classList.add('hidden');
+            editForm.reset();
+        }
+
+        // --- Event Listeners ---
+        // จัดการการเพิ่มวิดีโอ
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            addStatusMessage.innerHTML = '<p class="text-blue-600">กำลังเพิ่มข้อมูล...</p>';
+            const formData = new FormData(addForm);
+            const videoData = {
+                videoId: formData.get('videoId'),
+                title: formData.get('title'),
+                description: formData.get('description'),
+                tags: formData.get('tags').split(',').map(tag => tag.trim()).filter(tag => tag)
+            };
+            try {
+                const response = await fetch('http://localhost:3000/api/videos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(videoData)
+                });
+                if (!response.ok) {
+                    const err = await response.json(); throw new Error(err.message);
+                }
+                const result = await response.json();
+                addStatusMessage.innerHTML = `<p class="text-green-600">${result.message}</p>`;
+                addForm.reset();
+                loadAdminVideos(); // โหลดรายการใหม่
+            } catch (error) {
+                addStatusMessage.innerHTML = `<p class="text-red-600">เกิดข้อผิดพลาด: ${error.message}</p>`;
+            }
+        });
+
+        // จัดการการคลิกปุ่ม แก้ไข/ลบ
+        videoListDiv.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            const id = target.dataset.id;
+            // ถ้าเป็นปุ่มลบ
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบวิดีโอนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/videos/${id}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error('การลบล้มเหลว');
+                        alert('ลบวิดีโอสำเร็จ');
+                        loadAdminVideos();
+                    } catch (error) {
+                        alert('เกิดข้อผิดพลาดในการลบ');
+                    }
+                }
+            }
+            // ถ้าเป็นปุ่มแก้ไข
+            if (target.classList.contains('edit-btn')) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/videos`); // ใช้ API เดิมเพื่อหาข้อมูล
+                    const videos = await response.json();
+                    const videoToEdit = videos.find(v => v._id === id);
+                    if (videoToEdit) {
+                        openEditModal(videoToEdit);
+                    }
+                } catch(err) {
+                     alert('ไม่สามารถโหลดข้อมูลเพื่อแก้ไขได้');
+                }
+            }
+        });
+
+        // จัดการการแก้ไขฟอร์ม
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const updatedData = {
+                videoId: document.getElementById('edit-videoId').value,
+                title: document.getElementById('edit-title').value,
+                description: document.getElementById('edit-description').value,
+                tags: document.getElementById('edit-tags').value.split(',').map(tag => tag.trim()).filter(tag => tag)
+            };
+            try {
+                const response = await fetch(`http://localhost:3000/api/videos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+                if (!response.ok) throw new Error('การแก้ไขล้มเหลว');
+                alert('แก้ไขข้อมูลสำเร็จ');
+                closeEditModal();
+                loadAdminVideos();
+            } catch (error) {
+                alert('เกิดข้อผิดพลาดในการแก้ไข');
+            }
+        });
+
+        cancelEditBtn.addEventListener('click', closeEditModal);
+
+        // --- โหลดข้อมูลครั้งแรก ---
+        loadAdminVideos();
+
+    </script>
+</body>
+</html>

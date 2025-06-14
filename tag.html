@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="th" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หมวดหมู่ - ReadAgain</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body { font-family: 'Sarabun', 'Inter', sans-serif; scroll-behavior: smooth; }
+        #videoModal.hidden { display: none; }
+        .play-icon-shadow { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        #toast-notification {
+            position: fixed; bottom: -100px; left: 50%;
+            transform: translateX(-50%); padding: 1rem 1.5rem; border-radius: 0.5rem;
+            background-color: #2c3e50; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 500; z-index: 100; transition: bottom 0.5s ease-in-out;
+        }
+        #toast-notification.show { bottom: 30px; }
+    </style>
+</head>
+<body class="bg-white text-stone-800 dark:bg-stone-900 dark:text-stone-300 transition-colors duration-300">
+
+    <!-- =========== Header =========== -->
+    <header class="bg-white/80 dark:bg-stone-900/80 backdrop-blur-lg sticky top-0 z-40 border-b border-stone-200 dark:border-stone-700">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-stone-900 dark:text-stone-100">ReadAgain <span class="text-orange-500">.</span></a>
+            <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                <i id="theme-toggle-dark-icon" class="fa-solid fa-moon"></i>
+                <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- =========== Main Content =========== -->
+    <main class="py-12">
+        <div class="container mx-auto px-6">
+            <div class="mb-12">
+                <a href="/" class="text-orange-500 hover:underline mb-4 inline-block"><i class="fas fa-arrow-left mr-2"></i>กลับไปหน้าแรก</a>
+                <h1 id="tag-title" class="text-4xl md:text-5xl font-extrabold text-stone-900 dark:text-stone-100">หมวดหมู่: ...</h1>
+                <div class="h-1 w-20 bg-orange-500 mt-4 rounded"></div>
+            </div>
+            <div id="video-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Videos will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- =========== Footer =========== -->
+    <footer class="bg-stone-100 dark:bg-stone-800 mt-12">
+        <div class="container mx-auto px-6 py-12 text-center">
+             <p>&copy; 2025 ReadAgain. All Rights Reserved. | <a href="/login" class="hover:text-orange-500">Admin Login</a></p>
+        </div>
+    </footer>
+
+    <!-- =========== Video Modal =========== -->
+    <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white dark:bg-stone-800 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b dark:border-stone-700">
+                <h3 id="modalVideoTitle" class="text-2xl font-bold text-stone-900 dark:text-stone-100"></h3>
+                <button id="closeModalBtn" class="text-3xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 leading-none">&times;</button>
+            </div>
+            <div class="p-4 md:p-6 flex-grow overflow-y-auto">
+                <div class="aspect-video mb-4 rounded-lg overflow-hidden">
+                    <iframe id="modalVideoIframe" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <p id="modalVideoDescription" class="text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed"></p>
+            </div>
+            <div class="p-4 bg-stone-50 dark:bg-stone-900/50 border-t dark:border-stone-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span class="font-semibold text-stone-700 dark:text-stone-200">แชร์วิดีโอนี้:</span>
+                <div class="flex items-center gap-3">
+                    <a id="shareFacebook" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors" title="แชร์ไปที่ Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a id="shareTwitter" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800 transition-colors" title="แชร์ไปที่ X (Twitter)"><i class="fab fa-twitter"></i></a>
+                    <a id="shareLine" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors" title="แชร์ไปที่ Line"><i class="fab fa-line"></i></a>
+                    <button id="copyLinkBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-stone-500 text-white hover:bg-stone-600 transition-colors" title="คัดลอกลิงก์">
+                        <i class="fas fa-link"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notification"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Variables ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const videoGridContainer = document.getElementById('video-grid-container');
+        const tagTitle = document.getElementById('tag-title');
+        const modal = document.getElementById('videoModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalVideoIframe = document.getElementById('modalVideoIframe');
+        const modalVideoTitle = document.getElementById('modalVideoTitle');
+        const modalVideoDescription = document.getElementById('modalVideoDescription');
+        const toast = document.getElementById('toast-notification');
+        let toastTimeout;
+
+        // Share button variables
+        const shareFacebook = document.getElementById('shareFacebook');
+        const shareTwitter = document.getElementById('shareTwitter');
+        const shareLine = document.getElementById('shareLine');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+
+        // --- Theme Switcher ---
+        const applyTheme = (theme) => {
+            const lightIcon = document.getElementById('theme-toggle-light-icon');
+            const darkIcon = document.getElementById('theme-toggle-dark-icon');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                if(lightIcon) lightIcon.classList.remove('hidden');
+                if(darkIcon) darkIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                if(lightIcon) lightIcon.classList.add('hidden');
+                if(darkIcon) darkIcon.classList.remove('hidden');
+            }
+        };
+        themeToggleBtn.addEventListener('click', () => {
+            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+
+        // --- Toast Notification ---
+        function showToast(message) {
+            clearTimeout(toastTimeout);
+            toast.textContent = message;
+            toast.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- Modal Logic ---
+        const openModal = (video) => {
+            modalVideoIframe.src = `https://www.youtube.com/embed/${video.videoId}?autoplay=1`;
+            modalVideoTitle.textContent = video.title;
+            modalVideoDescription.innerHTML = (video.description || '').replace(/\n/g, '<br>');
+
+            const youtubeUrl = `https://www.youtube.com/watch?v=${video.videoId}`;
+            const shareText = `${video.title}\n\n${youtubeUrl}`;
+            shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(youtubeUrl)}`;
+            shareTwitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+            shareLine.href = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(youtubeUrl)}`;
+            copyLinkBtn.onclick = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = youtubeUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('คัดลอกลิงก์แล้ว!');
+                } catch (err) {
+                    showToast('ไม่สามารถคัดลอกลิงก์ได้');
+                }
+                document.body.removeChild(textArea);
+            };
+
+            modal.classList.remove('hidden');
+        };
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modalVideoIframe.src = '';
+        };
+
+        // --- Main Data Loading Function ---
+        async function loadVideosByTag() {
+            const pathParts = window.location.pathname.split('/');
+            const tagName = decodeURIComponent(pathParts[pathParts.length - 1] || '');
+
+            if (!tagName) {
+                tagTitle.textContent = 'ไม่พบหมวดหมู่';
+                videoGridContainer.innerHTML = '<p>ไม่พบหมวดหมู่ที่ต้องการ</p>';
+                return;
+            }
+
+            document.title = `หมวดหมู่: ${tagName} - ReadAgain`;
+            tagTitle.textContent = `หมวดหมู่: ${tagName}`;
+
+            try {
+                const response = await fetch(`/api/videos?tag=${encodeURIComponent(tagName)}`);
+                const videos = await response.json();
+
+                videoGridContainer.innerHTML = '';
+                if (videos.length === 0) {
+                    videoGridContainer.innerHTML = '<p class="col-span-full text-center">ไม่พบวิดีโอในหมวดหมู่นี้</p>';
+                    return;
+                }
+
+                videos.forEach(video => {
+                    const card = document.createElement('div');
+                    card.className = 'video-thumbnail-card bg-white dark:bg-stone-800/50 rounded-xl overflow-hidden shadow-lg hover:shadow-orange-200 dark:hover:shadow-orange-900/50 group cursor-pointer transition-all duration-300 ease-out hover:scale-105';
+                    card.videoData = video;
+                    card.innerHTML = `
+                        <div class="relative aspect-video">
+                            <img src="https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg" alt="ปกคลิป ${video.title}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/10 dark:bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fa-solid fa-play text-white text-5xl play-icon-shadow"></i>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg text-stone-800 dark:text-stone-200">${video.title}</h3>
+                        </div>
+                    `;
+                    videoGridContainer.appendChild(card);
+                });
+            } catch (error) {
+                videoGridContainer.innerHTML = '<p class="col-span-full text-center text-red-500">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+            }
+        }
+
+        // --- Event Listeners ---
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
+
+        document.body.addEventListener('click', (event) => {
+            const card = event.target.closest('.video-thumbnail-card');
+            if (card && card.videoData) {
+                openModal(card.videoData);
+            }
+        });
+
+        // --- Initial Load ---
+        loadVideosByTag();
+    });
+    </script>
+</body>
+</html>

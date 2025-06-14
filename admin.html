@@ -1,0 +1,482 @@
+<!--
+  Version: 10.0.0 (Admin)
+  Date: 2025-06-12
+  Author: Gemini & Folk
+  Description:
+    - เพิ่มระบบตรวจสอบคลิปซ้ำอัตโนมัติเมื่อวางลิงก์หรือกรอก Video ID
+    - แสดงข้อความเตือนและปิดปุ่ม "เพิ่มวิดีโอ" หากพบว่ามีคลิปอยู่แล้ว
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - ReadAgain</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        /* Custom Toast Notification */
+        #toast-notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 500;
+            z-index: 100;
+            transition: all 0.5s ease-in-out;
+        }
+        #toast-notification.show { bottom: 30px; }
+        #toast-notification.success { background-color: #27ae60; }
+        #toast-notification.error { background-color: #c0392b; }
+        .form-input-inline {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            transition: border-color 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-stone-100">
+
+    <div class="container mx-auto max-w-4xl py-12 px-4">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-stone-800">ReadAgain Admin Panel</h1>
+                <p class="text-stone-600">หน้าสำหรับจัดการข้อมูลวิดีโอในระบบ</p>
+            </div>
+            <a href="/" class="bg-white text-stone-600 px-4 py-2 rounded-lg border hover:bg-stone-50 transition-colors">
+                <i class="fas fa-home mr-2"></i>กลับหน้าหลัก
+            </a>
+        </div>
+
+        <!-- Add Video Form -->
+        <div class="bg-white p-8 rounded-lg shadow-md mb-12">
+            <h2 class="text-2xl font-semibold text-stone-700 border-b pb-2 mb-6">เพิ่มวิดีโอใหม่</h2>
+            <form id="addVideoForm" class="space-y-6">
+                <div>
+                    <label for="videoId" class="block text-sm font-medium text-stone-700 mb-1">วางลิงก์ YouTube หรือ Video ID*</label>
+                    <input type="text" id="videoId" name="videoId" required class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="https://www.youtube.com/watch?v=aP9ifCy87O8">
+                    <div id="videoId-preview" class="mt-2 text-center min-h-[90px]"></div>
+                    <div id="videoId-status" class="mt-2 text-center text-sm font-semibold"></div>
+                </div>
+                <div>
+                    <label for="title" class="block text-sm font-medium text-stone-700 mb-1">ชื่อคลิป (Title)*</label>
+                    <input type="text" id="title" name="title" required class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="จะถูกดึงข้อมูลอัตโนมัติเมื่อวางลิงก์">
+                </div>
+                <div>
+                    <label for="description" class="block text-sm font-medium text-stone-700 mb-1">คำอธิบาย (Description)</label>
+                    <textarea id="description" name="description" rows="4" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="จะถูกดึงข้อมูลอัตโนมัติเมื่อวางลิงก์"></textarea>
+                </div>
+                <div>
+                    <label for="tags" class="block text-sm font-medium text-stone-700 mb-1">Tags (หมวดหมู่)</label>
+                    <input type="text" id="tags" name="tags" class="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="ใส่ 'แนะนำ' หรือ 'ใหม่' เพื่อจัดหมวดหมู่">
+                </div>
+                <div>
+                    <button type="submit" id="addVideoBtn" class="w-full bg-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                        <span id="addBtn-text">เพิ่มวิดีโอ</span>
+                        <i id="addBtn-spinner" class="fas fa-spinner fa-spin hidden"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Video Management Section -->
+        <div class="bg-white p-8 rounded-lg shadow-md">
+            <div class="flex flex-col md:flex-row justify-between md:items-center border-b pb-4 mb-6 gap-4">
+                <h2 class="text-2xl font-semibold text-stone-700">จัดการวิดีโอทั้งหมด</h2>
+                <div class="relative">
+                    <input type="search" id="search-input" placeholder="ค้นหาจากชื่อคลิป..." class="w-full md:w-64 pl-10 pr-4 py-2 border rounded-lg">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"></i>
+                </div>
+            </div>
+            <div id="video-management-list" class="space-y-4">
+                <!-- Video list will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Element -->
+    <div id="toast-notification"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- ตัวแปร ---
+        const addForm = document.getElementById('addVideoForm');
+        const addVideoBtn = document.getElementById('addVideoBtn');
+        const videoListDiv = document.getElementById('video-management-list');
+        const searchInput = document.getElementById('search-input');
+        const toast = document.getElementById('toast-notification');
+
+        let toastTimeout;
+        let allVideos = [];
+
+        // --- ระบบ UI และ Utility ---
+        function showToast(message, type = 'success') {
+            clearTimeout(toastTimeout);
+            toast.textContent = message;
+            toast.className = 'show';
+            toast.classList.add(type);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        function setButtonLoading(button, textEl, spinnerEl, isLoading) {
+            const text = document.getElementById(textEl);
+            const spinner = document.getElementById(spinnerEl);
+            if(button){
+                button.disabled = isLoading;
+                if (text) text.classList.toggle('hidden', isLoading);
+                if (spinner) spinner.classList.toggle('hidden', !isLoading);
+            }
+        }
+
+        function debounce(func, delay = 500) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        // --- ระบบตรวจสอบและดึงข้อมูลวิดีโอ ---
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) {
+                return match[2];
+            }
+            return url.trim();
+        }
+
+        async function checkVideoExistence(videoId, statusElement) {
+            try {
+                const response = await fetch(`/api/videos/check/${videoId}`);
+                if (!response.ok) return; // Fail silently, let other validation handle it.
+                const data = await response.json();
+
+                if (data.exists) {
+                    statusElement.innerHTML = `<p class="text-amber-600">⚠️ คลิปนี้มีในระบบแล้ว: "${data.title}"</p>`;
+                    addVideoBtn.disabled = true;
+                } else {
+                    statusElement.innerHTML = `<p class="text-green-600">✅ ID นี้สามารถใช้งานได้</p>`;
+                    addVideoBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error checking video existence:", error);
+                statusElement.innerHTML = '';
+                addVideoBtn.disabled = false;
+            }
+        }
+
+        async function fetchVideoDetails(videoId, formElements) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/youtube-details/${videoId}`);
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                if (data.title && formElements.titleInput) {
+                    formElements.titleInput.value = data.title;
+                }
+                if (data.description && formElements.descriptionInput) {
+                    formElements.descriptionInput.value = data.description;
+                }
+            } catch (error) {
+                console.error("Could not fetch video details:", error);
+            }
+        }
+
+        function validateVideoId(videoId, previewElement, statusElement, inputElement, formElements) {
+            previewElement.innerHTML = '';
+            statusElement.innerHTML = '';
+            inputElement.style.borderColor = '';
+            addVideoBtn.disabled = false; // Enable by default on new input
+
+            const trimmedId = videoId.trim();
+            if (!trimmedId) return;
+
+            if (trimmedId.length !== 11) {
+                statusElement.innerHTML = `<p class="text-red-500">ID ไม่ถูกต้อง (ต้องมี 11 ตัวอักษร)</p>`;
+                inputElement.style.borderColor = '#ef4444';
+                addVideoBtn.disabled = true;
+                return;
+            }
+
+            const img = new Image();
+            img.src = `https://img.youtube.com/vi/${trimmedId}/mqdefault.jpg`;
+            previewElement.innerHTML = `<i class="fas fa-spinner fa-spin text-stone-400"></i>`;
+            addVideoBtn.disabled = true;
+
+            img.onload = async () => {
+                inputElement.style.borderColor = '#22c55e';
+                previewElement.innerHTML = '';
+                img.className = 'rounded-lg w-32 mx-auto shadow-md';
+                previewElement.appendChild(img);
+                await checkVideoExistence(trimmedId, statusElement); // Check if exists
+                if (!addVideoBtn.disabled) { // Only fetch details if not a duplicate
+                    fetchVideoDetails(trimmedId, formElements);
+                }
+            };
+
+            img.onerror = () => {
+                inputElement.style.borderColor = '#ef4444';
+                previewElement.innerHTML = '';
+                statusElement.innerHTML = `<p class="text-red-500">ไม่พบวิดีโอสำหรับ ID นี้</p>`;
+                addVideoBtn.disabled = true;
+            };
+        }
+
+        function showSkeletonLoader() {
+            let skeletons = '';
+            for (let i = 0; i < 3; i++) {
+                skeletons += `<div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center animate-pulse"><div class="space-y-2"><div class="h-5 bg-stone-200 rounded w-48"></div><div class="h-4 bg-stone-200 rounded w-32"></div></div><div class="flex gap-2"><div class="h-8 w-16 bg-stone-200 rounded"></div><div class="h-8 w-12 bg-stone-200 rounded"></div></div></div>`;
+            }
+            videoListDiv.innerHTML = skeletons;
+        }
+
+        // --- ระบบแสดงผลและจัดการแถว ---
+        function createVideoRow(video) {
+            const row = document.createElement('div');
+            row.className = 'video-item bg-white p-4 rounded-lg border';
+            row.dataset.id = video._id;
+            row.innerHTML = `
+                <div class="view-mode flex justify-between items-center">
+                    <div class="flex-grow pr-4">
+                        <p class="font-bold text-stone-800">${video.title}</p>
+                        <p class="text-sm text-stone-500">ID: ${video.videoId}</p>
+                    </div>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button class="edit-btn text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i> แก้ไข</button>
+                        <button class="delete-btn text-red-600 hover:text-red-800"><i class="fas fa-trash"></i> ลบ</button>
+                    </div>
+                </div>
+            `;
+            return row;
+        }
+
+        function renderVideoList(videosToRender) {
+            videoListDiv.innerHTML = '';
+            if (videosToRender.length === 0) {
+                 videoListDiv.innerHTML = `<p class="text-center text-stone-500">ไม่พบวิดีโอ</p>`;
+                 return;
+            }
+            videosToRender.forEach(video => {
+                const videoRow = createVideoRow(video);
+                videoListDiv.appendChild(videoRow);
+            });
+        }
+
+        function switchToEditMode(row) {
+            const id = row.dataset.id;
+            const video = allVideos.find(v => v._id === id);
+            if (!video) return;
+
+            row.innerHTML = `
+                <div class="edit-mode space-y-4">
+                    <input type="text" value="${video.title}" class="form-input-inline edit-title-input" placeholder="ชื่อคลิป">
+                    <div>
+                        <input type="text" value="${video.videoId}" class="form-input-inline edit-videoid-input" placeholder="ลิงก์ YouTube หรือ Video ID">
+                        <div class="edit-preview-div text-center mt-2 min-h-[90px]">
+                            <img src="https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg" class="rounded-lg w-32 mx-auto">
+                        </div>
+                    </div>
+                    <textarea class="form-input-inline edit-desc-input" rows="3" placeholder="คำอธิบาย">${video.description || ''}</textarea>
+                    <input type="text" value="${(video.tags || []).join(', ')}" class="form-input-inline edit-tags-input" placeholder="Tags (คั่นด้วย comma)">
+                    <div class="flex justify-end gap-2">
+                         <button class="cancel-edit-btn bg-stone-200 text-stone-800 px-4 py-2 rounded-lg">ยกเลิก</button>
+                         <button class="save-btn bg-green-600 text-white px-4 py-2 rounded-lg">บันทึก</button>
+                    </div>
+                </div>`;
+        }
+
+        function switchToConfirmDeleteMode(row) {
+            const id = row.dataset.id;
+            const video = allVideos.find(v => v._id === id);
+            if (!video) return;
+
+            row.innerHTML = `
+                 <div class="confirm-delete-mode flex justify-between items-center bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-semibold">ยืนยันการลบ "${video.title}"?</p>
+                    <div class="flex gap-2">
+                        <button class="cancel-delete-btn bg-stone-200 text-stone-800 px-4 py-2 rounded-lg">ยกเลิก</button>
+                        <button class="confirm-delete-btn bg-red-600 text-white px-4 py-2 rounded-lg">ยืนยัน</button>
+                    </div>
+                 </div>
+            `;
+        }
+
+        function resetRow(row) {
+            const id = row.dataset.id;
+            const video = allVideos.find(v => v._id === id);
+            if(video) {
+                const newRow = createVideoRow(video);
+                row.parentNode.replaceChild(newRow, row);
+            }
+        }
+
+        // --- ฟังก์ชันหลัก ---
+        async function loadAdminVideos() {
+            showSkeletonLoader();
+            try {
+                const response = await fetch('http://localhost:3000/api/videos');
+                if (!response.ok) throw new Error('Network response was not ok');
+                allVideos = await response.json();
+                renderVideoList(allVideos);
+            } catch (error) {
+                videoListDiv.innerHTML = `<p class="text-red-600">ไม่สามารถโหลดรายการวิดีโอได้</p>`;
+            }
+        }
+
+        // --- Event Listeners ---
+        addForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setButtonLoading(addVideoBtn, 'addBtn-text', 'addBtn-spinner', true);
+            const videoData = {
+                videoId: extractVideoId(addForm.videoId.value),
+                title: addForm.title.value,
+                description: addForm.description.value,
+                tags: addForm.tags.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+            };
+            try {
+                const response = await fetch('http://localhost:3000/api/videos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(videoData)
+                });
+                if (!response.ok) {
+                    const err = await response.json(); throw new Error(err.message);
+                }
+                const result = await response.json();
+                showToast(result.message, 'success');
+                addForm.reset();
+                document.getElementById('videoId-preview').innerHTML = '';
+                document.getElementById('videoId-status').innerHTML = '';
+                document.getElementById('videoId').style.borderColor = '';
+                loadAdminVideos();
+            } catch (error) {
+                showToast(`เกิดข้อผิดพลาด: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(addVideoBtn, 'addBtn-text', 'addBtn-spinner', false);
+            }
+        });
+
+        const videoIdInputHandler = (event) => {
+            const inputElement = event.target;
+            const value = inputElement.value;
+            const extractedId = extractVideoId(value);
+
+            if (extractedId && extractedId !== value) {
+                inputElement.value = extractedId;
+            }
+
+            let previewElement, statusElement, formElements;
+            if (inputElement.id === 'videoId') {
+                previewElement = document.getElementById('videoId-preview');
+                statusElement = document.getElementById('videoId-status');
+                formElements = {
+                    titleInput: addForm.title,
+                    descriptionInput: addForm.description
+                };
+            } else {
+                const row = inputElement.closest('.edit-mode');
+                previewElement = row ? row.querySelector('.edit-preview-div') : null;
+                statusElement = { innerHTML: '' }; // No status check in edit mode
+                formElements = {
+                    titleInput: row ? row.querySelector('.edit-title-input') : null,
+                    descriptionInput: row ? row.querySelector('.edit-desc-input') : null
+                };
+            }
+
+            if (previewElement) {
+                validateVideoId(inputElement.value, previewElement, statusElement, inputElement, formElements);
+            }
+        };
+
+        addForm.videoId.addEventListener('input', debounce(videoIdInputHandler, 400));
+
+        videoListDiv.addEventListener('click', async (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const row = button.closest('.video-item, .confirm-delete-mode, .edit-mode');
+            if(!row) return;
+
+            const videoItem = row.classList.contains('video-item') ? row : row.closest('.video-item');
+            const id = videoItem ? videoItem.dataset.id : null;
+
+            if (button.classList.contains('edit-btn')) {
+                switchToEditMode(videoItem);
+            }
+            else if (button.classList.contains('delete-btn')) {
+                switchToConfirmDeleteMode(videoItem);
+            }
+            else if (button.classList.contains('cancel-edit-btn') || button.classList.contains('cancel-delete-btn')) {
+                resetRow(videoItem);
+            }
+            else if (button.classList.contains('save-btn')) {
+                const updatedData = {
+                    title: row.querySelector('.edit-title-input').value,
+                    videoId: extractVideoId(row.querySelector('.edit-videoid-input').value),
+                    description: row.querySelector('.edit-desc-input').value,
+                    tags: row.querySelector('.edit-tags-input').value.split(',').map(tag => tag.trim()).filter(Boolean)
+                };
+                 try {
+                    const response = await fetch(`http://localhost:3000/api/videos/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedData)
+                    });
+                    if (!response.ok) throw new Error('การแก้ไขล้มเหลว');
+                    showToast('แก้ไขข้อมูลสำเร็จ', 'success');
+                    loadAdminVideos();
+                } catch (error) {
+                    showToast('เกิดข้อผิดพลาดในการแก้ไข', 'error');
+                    resetRow(videoItem);
+                }
+            }
+            else if (button.classList.contains('confirm-delete-btn')) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/videos/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('การลบล้มเหลว');
+                    showToast('ลบวิดีโอสำเร็จ', 'success');
+                    videoItem.remove();
+                } catch (error) {
+                    showToast('เกิดข้อผิดพลาดในการลบ', 'error');
+                    resetRow(videoItem);
+                }
+            }
+        });
+
+        videoListDiv.addEventListener('input', debounce((e) => {
+            if (e.target.classList.contains('edit-videoid-input')) {
+                const row = e.target.closest('.edit-mode');
+                const previewElement = row.querySelector('.edit-preview-div');
+                const formElements = {
+                    titleInput: row.querySelector('.edit-title-input'),
+                    descriptionInput: row.querySelector('.edit-desc-input')
+                };
+                 validateVideoId(e.target.value, previewElement, {innerHTML: ''}, e.target, formElements);
+            }
+        }, 400));
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredVideos = allVideos.filter(video =>
+                video.title.toLowerCase().includes(searchTerm)
+            );
+            renderVideoList(filteredVideos);
+        });
+
+        // --- Initial Load ---
+        loadAdminVideos();
+    });
+    </script>
+</body>
+</html>

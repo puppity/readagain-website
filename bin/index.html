@@ -1,0 +1,299 @@
+<!--
+  Version: 2.4.2
+  Date: 2025-06-13
+  Author: Gemini & Folk
+  Description: เวอร์ชันสำหรับผู้ชมทั่วไป, นำลิงก์ Admin ออก, คืนค่า Layout ที่ต้องการ และตรวจสอบความสมบูรณ์ทั้งหมด
+-->
+<!DOCTYPE html>
+<html lang="th" class=""> <!-- class="" is important for theme switcher -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReadAgain | สรุปหนังสือให้คุณอ่านอีกครั้ง</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    
+    <!-- Google Fonts & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; scroll-behavior: smooth; }
+        #videoModal.hidden { display: none; }
+        .play-icon-shadow { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+    </style>
+</head>
+<body class="bg-white text-stone-800 dark:bg-black dark:text-stone-300 transition-colors duration-300">
+
+    <!-- =========== ส่วนหัวของเว็บ (Header) =========== -->
+    <header class="bg-white/80 dark:bg-black/80 backdrop-blur-lg sticky top-0 z-40 border-b border-stone-200 dark:border-stone-800">
+        <div class="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-stone-900 dark:text-white">ReadAgain<span class="text-orange-500">.</span></a>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#video-library" class="text-stone-600 dark:text-stone-400 hover:text-orange-500 transition-colors">คลังวิดีโอ</a>
+            </nav>
+            <div class="flex items-center gap-4">
+                 <a href="https://www.youtube.com/@ReadAgainPodcast" target="_blank" class="hidden sm:inline-block bg-orange-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-orange-600 transition-transform hover:scale-105 shadow-md shadow-orange-100">
+                    <i class="fa-brands fa-youtube mr-2"></i>
+                    ติดตามเลย
+                </a>
+                <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                    <i id="theme-toggle-dark-icon" class="fa-solid fa-moon"></i>
+                    <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========== ส่วนเนื้อหาหลัก (Main Content) =========== -->
+    <main>
+        <!-- ส่วน Video Library: คลังวิดีโอทั้งหมด -->
+        <section id="video-library" class="py-16 md:py-20">
+            <div class="container mx-auto px-4 sm:px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-stone-900 dark:text-white">คลังวิดีโอสรุปหนังสือ</h2>
+                    <div class="h-1 w-20 bg-orange-500 mx-auto mt-4 rounded"></div>
+                    <div id="filter-status" class="mt-4 text-stone-600 dark:text-stone-400 min-h-[1.5rem] transition-all"></div>
+                    <p class="mt-2 text-stone-700 dark:text-stone-400 max-w-xl mx-auto">รับชมสรุปหนังสือในรูปแบบวิดีโอ ย่อยง่าย เข้าใจเร็ว (คลิกที่ภาพเพื่อรับชม)</p>
+                </div>
+                <div id="video-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- วิดีโอทั้งหมดจะถูกโหลดมาใส่ตรงนี้โดยอัตโนมัติ -->
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- =========== ส่วนท้ายของเว็บ (Footer) =========== -->
+    <footer class="bg-stone-100 dark:bg-stone-900 mt-20 border-t border-stone-200 dark:border-stone-800">
+       <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+               <div>
+                   <h3 class="text-xl font-bold text-stone-800 dark:text-white">ReadAgain<span class="text-orange-500">.</span></h3>
+                   <p class="mt-2 text-stone-600 dark:text-stone-400">
+                       พื้นที่สำหรับคนรักการอ่านและการเรียนรู้ เราย่อยหนังสือดีๆ ให้คุณ พร้อมส่งต่อเล่มโปรดถึงมือ
+                   </p>
+               </div>
+               <div>
+                   <h3 class="font-bold tracking-wider uppercase text-stone-600 dark:text-stone-300">Links</h3>
+                   <ul class="mt-4 space-y-2">
+                       <li><a href="#video-library" class="text-stone-600 dark:text-stone-400 hover:text-orange-500 transition-colors">คลังวิดีโอ</a></li>
+                       <!-- ลิงก์ Admin ถูกนำออกแล้ว -->
+                   </ul>
+               </div>
+               <div>
+                   <h3 class="font-bold tracking-wider uppercase text-stone-600 dark:text-stone-300">ติดตามเรา</h3>
+                   <div class="mt-4 flex justify-center md:justify-start space-x-6 text-2xl">
+                       <a href="https://www.youtube.com/@ReadAgainPodcast" target="_blank" class="text-stone-500 dark:text-stone-400 hover:text-orange-500 transition-colors"><i class="fa-brands fa-youtube"></i></a>
+                       <a href="#" class="text-stone-500 dark:text-stone-400 hover:text-orange-500 transition-colors"><i class="fa-brands fa-facebook"></i></a>
+                       <a href="#" class="text-stone-500 dark:text-stone-400 hover:text-orange-500 transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                   </div>
+               </div>
+           </div>
+           <div class="mt-12 border-t border-stone-200 dark:border-stone-700 pt-8 text-center text-stone-500 dark:text-stone-400 text-sm">
+               <p>&copy; 2025 ReadAgain. All Rights Reserved.</p>
+           </div>
+       </div>
+    </footer>
+
+    <!-- =========== Modal (Pop-up) สำหรับแสดงวิดีโอ =========== -->
+    <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b dark:border-stone-700">
+                <h3 id="modalVideoTitle" class="text-2xl font-bold text-stone-900 dark:text-stone-100"></h3>
+                <button id="closeModalBtn" class="text-3xl text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 leading-none">&times;</button>
+            </div>
+            <div class="p-4 md:p-6 flex-grow overflow-y-auto">
+                <div class="aspect-video mb-4 rounded-lg overflow-hidden">
+                    <iframe id="modalVideoIframe" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div id="modalTagsContainer" class="flex flex-wrap gap-2 mb-4"></div>
+                <p id="modalVideoDescription" class="text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed"></p>
+            </div>
+            <div class="p-4 bg-stone-50 dark:bg-stone-800/50 border-t dark:border-stone-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span class="font-semibold text-stone-700 dark:text-stone-200">แชร์วิดีโอนี้:</span>
+                <div class="flex items-center gap-3">
+                    <a id="shareFacebook" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white hover:bg-blue-700" title="แชร์ไปที่ Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a id="shareTwitter" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white hover:bg-gray-800" title="แชร์ไปที่ X (Twitter)"><i class="fab fa-twitter"></i></a>
+                    <a id="shareThreads" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-600 text-white hover:bg-gray-700" title="แชร์ไปที่ Threads"><i class="fab fa-threads"></i></a>
+                    <a id="shareLine" href="#" target="_blank" class="w-10 h-10 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600" title="แชร์ไปที่ Line"><i class="fab fa-line"></i></a>
+                    <button id="copyLinkBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-stone-500 text-white hover:bg-stone-600" title="คัดลอกลิงก์"><i class="fas fa-link"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========== JavaScript หลักของหน้าเว็บ =========== -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- ส่วนของการประกาศตัวแปร ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+        const videoListContainer = document.getElementById('video-list-container');
+        const filterStatus = document.getElementById('filter-status');
+        const modal = document.getElementById('videoModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalVideoIframe = document.getElementById('modalVideoIframe');
+        const modalVideoTitle = document.getElementById('modalVideoTitle');
+        const modalVideoDescription = document.getElementById('modalVideoDescription');
+        const modalTagsContainer = document.getElementById('modalTagsContainer');
+        const shareFacebook = document.getElementById('shareFacebook');
+        const shareTwitter = document.getElementById('shareTwitter');
+        const shareThreads = document.getElementById('shareThreads');
+        const shareLine = document.getElementById('shareLine');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const tagColors = ['bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300', 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300', 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300', 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300', 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'];
+
+        // --- ระบบสลับ Theme ---
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggleLightIcon.classList.add('hidden');
+                themeToggleDarkIcon.classList.remove('hidden');
+            }
+        };
+        const toggleTheme = () => {
+            const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        };
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+
+
+        // --- ระบบจัดการวิดีโอ ---
+        const handleTagClick = (tag) => {
+            closeModal();
+            loadVideos(tag);
+            document.getElementById('video-library').scrollIntoView({ behavior: 'smooth' });
+        };
+        window.handleTagClick = handleTagClick;
+
+        const openModal = (video) => {
+            const youtubeUrl = `https://www.youtube.com/watch?v=${video.videoId}`;
+            const shareText = `${video.title}\n\n${youtubeUrl}`;
+            
+            modalVideoIframe.src = `https://www.youtube.com/embed/${video.videoId}?autoplay=1`;
+            modalVideoTitle.textContent = video.title;
+
+            modalTagsContainer.innerHTML = '';
+            if(video.tags && video.tags.length > 0) {
+                video.tags.forEach((tag, index) => {
+                    const tagLink = document.createElement('a');
+                    const colorClass = tagColors[index % tagColors.length];
+                    tagLink.className = `text-sm font-medium px-3 py-1 rounded-full cursor-pointer hover:opacity-80 transition-opacity ${colorClass}`;
+                    tagLink.textContent = tag;
+                    tagLink.href = `#video-library`;
+                    tagLink.onclick = (e) => { e.preventDefault(); handleTagClick(tag); };
+                    modalTagsContainer.appendChild(tagLink);
+                });
+            }
+
+            if (video.description) {
+                const linkedDescription = video.description.replace(/#([\wก-๙]+)/g, (match, tag) => {
+                    return `<a href="#video-library" class="text-orange-600 font-semibold hover:underline" onclick="event.preventDefault(); window.handleTagClick('${tag}')">${match}</a>`;
+                });
+                modalVideoDescription.innerHTML = linkedDescription;
+            } else {
+                modalVideoDescription.innerHTML = '';
+            }
+            
+            shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(youtubeUrl)}`;
+            shareTwitter.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+            shareThreads.href = `https://threads.net/intent/post?text=${encodeURIComponent(shareText)}`;
+            shareLine.href = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(youtubeUrl)}`;
+            copyLinkBtn.onclick = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = youtubeUrl;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { document.execCommand('copy'); alert('คัดลอกลิงก์แล้ว!'); } catch (err) { alert('ไม่สามารถคัดลอกลิงก์ได้'); }
+                document.body.removeChild(textArea);
+            };
+
+            modal.classList.remove('hidden');
+        };
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            modalVideoIframe.src = ''; 
+        };
+        
+        async function loadVideos(tag = null) {
+            try {
+                let apiUrl = 'http://localhost:3000/api/videos';
+                if (tag) {
+                    apiUrl += `?tag=${encodeURIComponent(tag)}`;
+                    filterStatus.innerHTML = `<span>กำลังแสดงหมวดหมู่: <strong>${tag}</strong></span> <button id="clear-filter-btn" class="ml-2 text-orange-600 hover:underline font-semibold">[ล้างการกรอง]</button>`;
+                    document.getElementById('clear-filter-btn').onclick = () => loadVideos();
+                } else {
+                    filterStatus.innerHTML = ''; 
+                }
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('ไม่สามารถดึงข้อมูลวิดีโอได้');
+                const videos = await response.json();
+                videoListContainer.innerHTML = ''; 
+
+                if (videos.length === 0) {
+                    videoListContainer.innerHTML = `<p class="col-span-full text-center text-stone-500">ไม่พบวิดีโอในหมวดหมู่นี้</p>`;
+                    return;
+                }
+
+                videos.forEach(video => {
+                    const videoCard = document.createElement('div');
+                    videoCard.className = 'video-thumbnail-card bg-white dark:bg-stone-800/50 rounded-xl overflow-hidden shadow-lg hover:shadow-orange-200 dark:hover:shadow-orange-900/50 transition-shadow group cursor-pointer flex flex-col';
+                    videoCard.videoData = video;
+                    
+                    let shortDesc = video.description ? video.description.split('\n')[0] : '';
+                    if (shortDesc.length > 100) {
+                        shortDesc = shortDesc.substring(0, 100) + '...';
+                    }
+
+                    videoCard.innerHTML = `
+                        <div class="relative aspect-video bg-stone-200 dark:bg-stone-800">
+                            <img src="https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg" alt="ปกคลิป ${video.title}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/10 dark:bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fa-solid fa-play text-white text-5xl play-icon-shadow"></i>
+                            </div>
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow">
+                            <h3 class="font-semibold text-lg text-stone-800 dark:text-stone-200">${video.title}</h3>
+                            <p class="text-sm text-stone-600 dark:text-stone-400 mt-1 flex-grow">${shortDesc}</p>
+                        </div>
+                    `;
+                    videoListContainer.appendChild(videoCard);
+                });
+            } catch (error) {
+                videoListContainer.innerHTML = `<p class="text-red-500 col-span-full text-center">${error.message}</p>`;
+                console.error('Error loading videos:', error);
+            }
+        }
+        
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+        document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
+
+        videoListContainer.addEventListener('click', (event) => {
+            const card = event.target.closest('.video-thumbnail-card');
+            if (card && card.videoData) {
+                openModal(card.videoData);
+            }
+        });
+        
+        loadVideos();
+    });
+    </script>
+</body>
+</html>
