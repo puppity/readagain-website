@@ -1,10 +1,10 @@
 <!--
-  Version: 11.1.0 (Admin)
+  Version: 12.0.0 (Admin)
   Date: 2025-06-14
   Author: Gemini & Folk
   Description:
-    - แก้ไข: เปลี่ยน API endpoint จาก "http://localhost:3000" เป็น Relative Path ("/api/...")
-    - ทำให้สามารถทำงานบนเซิร์ฟเวอร์จริง (Render.com) ได้อย่างถูกต้อง
+    - แก้ไข: เปลี่ยน API endpoint ทั้งหมดเป็น Relative Path ("/api/...")
+    - เพิ่ม: ระบบแสดงข้อผิดพลาดใน Console เพื่อการวินิจฉัยที่แม่นยำ
 -->
 <!DOCTYPE html>
 <html lang="th">
@@ -150,8 +150,11 @@
 
         async function checkVideoExistence(videoId, statusElement) {
             try {
-                const response = await fetch(`/api/videos/check/${videoId}`); // FIX: Relative path
-                if (!response.ok) return;
+                const response = await fetch(`/api/videos/check/${videoId}`);
+                if (!response.ok) {
+                   const errText = await response.text();
+                   throw new Error(`Server returned ${response.status}: ${errText}`);
+                }
                 const data = await response.json();
 
                 if (data.exists) {
@@ -163,16 +166,18 @@
                 }
             } catch (error) {
                 console.error("Error checking video existence:", error);
-                statusElement.innerHTML = '';
+                statusElement.innerHTML = `<p class="text-red-500">ตรวจสอบ ID ไม่ได้</p>`;
                 addVideoBtn.disabled = false;
             }
         }
 
         async function fetchVideoDetails(videoId, formElements) {
             try {
-                const response = await fetch(`/api/youtube-details/${videoId}`); // FIX: Relative path
-                if (!response.ok) return;
-
+                const response = await fetch(`/api/youtube-details/${videoId}`);
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Server returned ${response.status}: ${errText}`);
+                }
                 const data = await response.json();
 
                 if (data.title && formElements.titleInput) {
@@ -183,6 +188,7 @@
                 }
             } catch (error) {
                 console.error("Could not fetch video details:", error);
+                showToast('ไม่สามารถดึงข้อมูลคลิปได้', 'error');
             }
         }
 
