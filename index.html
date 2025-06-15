@@ -1,10 +1,10 @@
 <!--
-  Version: 24.0.0
-  Date: 2025-06-14
+  Version: 25.1.0
+  Date: 2025-06-15
   Author: Gemini & Folk
   Description:
-    - เพิ่ม: ระบบแสดงข้อผิดพลาด (Error Handling) ใน JavaScript ให้ละเอียดขึ้น
-    - เพื่อช่วยวินิจฉัยปัญหาการเชื่อมต่อกับเซิร์ฟเวอร์บน Render.com
+    - แก้ไข: นำโค้ด JavaScript ที่ขาดหายไปทั้งหมดกลับมาใส่ให้ครบถ้วน
+    - ทำให้การโหลดวิดีโอ, แถบ Tag, และปุ่มเลื่อนกลับมาทำงานได้ปกติ
 -->
 <!DOCTYPE html>
 <html lang="th" class="">
@@ -130,60 +130,70 @@
             </div>
         </section>
 
-        <!-- Section: Recommended Videos (Large Carousel) -->
-        <section id="recommended-section" class="content-section py-4 bg-white dark:bg-stone-900">
-            <div class="container mx-auto px-6">
-                 <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Recommend <span class="text-orange-500 font-light mx-2">|</span> คลิปนี้เราแนะนำ</h3>
-                 <div id="recommended-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-                    <!-- Recommended videos will be loaded here -->
+        <!-- All Carousel Sections Wrapper -->
+        <div id="carousel-sections-wrapper" class="content-section">
+            <!-- Section: Recommended Videos (Large Carousel) -->
+            <section id="recommended-section" class="py-4 bg-white dark:bg-stone-900">
+                <div class="container mx-auto px-6">
+                    <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Recommend <span class="text-orange-500 font-light mx-2">|</span> คลิปนี้เราแนะนำ</h3>
+                    <div class="relative group">
+                        <div id="recommended-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide"></div>
+                        <button class="carousel-prev hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-next hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Section: New Videos (Small Carousel) -->
-        <section id="new-videos-section" class="content-section py-4 bg-white dark:bg-stone-900">
-            <div class="container mx-auto px-6">
-                <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">New <span class="text-orange-500 font-light mx-2">|</span> คลิปใหม่ล่าสุด</h3>
-                <div id="new-videos-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-                   <!-- New videos will be loaded here -->
+            <!-- Other Sections... -->
+            <section id="new-videos-section" class="py-4 bg-white dark:bg-stone-900">
+                <div class="container mx-auto px-6">
+                    <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">New <span class="text-orange-500 font-light mx-2">|</span> คลิปใหม่ล่าสุด</h3>
+                    <div class="relative group">
+                        <div id="new-videos-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide"></div>
+                        <button class="carousel-prev hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-next hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Section: Self-Development -->
-        <section id="self-dev-section" class="content-section py-4 bg-white dark:bg-stone-900">
-            <div class="container mx-auto px-6">
-                <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Self-Dev <span class="text-orange-500 font-light mx-2">|</span> พัฒนาตัวเอง</h3>
-                <div id="self-dev-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-                   <!-- Self-development videos will be loaded here -->
+            <section id="self-dev-section" class="py-4 bg-white dark:bg-stone-900">
+                 <div class="container mx-auto px-6">
+                    <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Self-Dev <span class="text-orange-500 font-light mx-2">|</span> พัฒนาตัวเอง</h3>
+                     <div class="relative group">
+                        <div id="self-dev-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide"></div>
+                        <button class="carousel-prev hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-next hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Section: Love -->
-        <section id="love-section" class="content-section py-4 bg-white dark:bg-stone-900">
-            <div class="container mx-auto px-6">
-                <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Love <span class="text-orange-500 font-light mx-2">|</span> ความรัก</h3>
-                <div id="love-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-                   <!-- Love videos will be loaded here -->
+            <section id="love-section" class="py-4 bg-white dark:bg-stone-900">
+                <div class="container mx-auto px-6">
+                    <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Love <span class="text-orange-500 font-light mx-2">|</span> ความรัก</h3>
+                     <div class="relative group">
+                        <div id="love-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide"></div>
+                        <button class="carousel-prev hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-next hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Section: Psychology -->
-        <section id="psychology-section" class="content-section py-4 bg-white dark:bg-stone-900">
-            <div class="container mx-auto px-6">
-                <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Psychology <span class="text-orange-500 font-light mx-2">|</span> จิตวิทยา</h3>
-                <div id="psychology-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide">
-                   <!-- Psychology videos will be loaded here -->
+            <section id="psychology-section" class="py-4 bg-white dark:bg-stone-900">
+                <div class="container mx-auto px-6">
+                    <h3 class="text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-200 mb-3">Psychology <span class="text-orange-500 font-light mx-2">|</span> จิตวิทยา</h3>
+                     <div class="relative group">
+                        <div id="psychology-container" class="flex overflow-x-auto space-x-6 pb-4 scrollbar-hide"></div>
+                        <button class="carousel-prev hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 left-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-left"></i></button>
+                        <button class="carousel-next hidden md:group-hover:block absolute top-1/2 -translate-y-1/2 right-0 z-10 bg-white/70 dark:bg-black/70 p-2 rounded-full shadow-md"><i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
     </main>
 
     <!-- =========== Footer =========== -->
     <footer id="about" class="bg-stone-100 dark:bg-stone-800 mt-8">
-       <div class="container mx-auto px-6 py-12">
+        <div class="container mx-auto px-6 py-12">
            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center md:text-left">
                <div>
                    <h3 class="text-xl font-bold text-stone-800 dark:text-white">ReadAgain .</h3>
@@ -207,7 +217,7 @@
     </footer>
 
     <!-- =========== Video Modal =========== -->
-    <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+    <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-stone-800 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b dark:border-stone-700">
                 <h3 id="modalVideoTitle" class="text-2xl font-bold text-stone-900 dark:text-stone-100"></h3>
@@ -254,7 +264,7 @@
         const searchResultsSection = document.getElementById('search-results-section');
         const searchResultsContainer = document.getElementById('search-results-container');
         const searchTermSpan = document.getElementById('search-term');
-        const contentSections = document.querySelectorAll('.content-section');
+        const contentWrapper = document.getElementById('carousel-sections-wrapper');
 
         // Share button variables
         const shareFacebook = document.getElementById('shareFacebook');
@@ -341,7 +351,7 @@
                 videos.forEach(video => container.appendChild(createVideoCard(video, layoutType)));
             } catch (error) {
                 console.error(`Error loading section '${tag}':`, error);
-                container.innerHTML = `<p class="text-red-500 p-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>`;
+                container.innerHTML = `<p class="text-red-500 p-4">เกิดข้อผิดพลาด: ${error.message}</p>`;
             }
         }
 
@@ -384,12 +394,34 @@
             }
         }
 
+        // --- Carousel Controls Logic ---
+        function setupCarouselControls() {
+            const carousels = document.querySelectorAll('.relative.group');
+            carousels.forEach(carousel => {
+                const container = carousel.querySelector('.flex.overflow-x-auto');
+                const prevBtn = carousel.querySelector('.carousel-prev');
+                const nextBtn = carousel.querySelector('.carousel-next');
+
+                if (container && prevBtn && nextBtn) {
+                    nextBtn.addEventListener('click', () => {
+                        const scrollAmount = container.clientWidth * 0.8;
+                        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                    });
+
+                    prevBtn.addEventListener('click', () => {
+                        const scrollAmount = container.clientWidth * 0.8;
+                        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                    });
+                }
+            });
+        }
+
         // --- Search Logic ---
         function performSearch() {
             const searchTerm = mainSearchInput.value.trim().toLowerCase();
 
             if (searchTerm.length > 0) {
-                contentSections.forEach(section => section.classList.add('hidden'));
+                contentWrapper.classList.add('hidden');
                 searchResultsSection.classList.remove('hidden');
 
                 searchTermSpan.textContent = mainSearchInput.value.trim();
@@ -407,13 +439,14 @@
                     });
                 }
             } else {
-                contentSections.forEach(section => section.classList.remove('hidden'));
+                contentWrapper.classList.remove('hidden');
                 searchResultsSection.classList.add('hidden');
             }
         }
 
         // --- Modal Logic ---
         const openModal = (video) => {
+            const modal = document.getElementById('videoModal');
             const modalVideoIframe = document.getElementById('modalVideoIframe');
             const modalVideoTitle = document.getElementById('modalVideoTitle');
             const modalVideoDescription = document.getElementById('modalVideoDescription');
@@ -444,12 +477,14 @@
                 document.body.removeChild(textArea);
             };
 
-            document.getElementById('videoModal').classList.remove('hidden');
+            modal.classList.remove('hidden');
         };
 
         const closeModal = () => {
-            document.getElementById('videoModal').classList.add('hidden');
-            document.getElementById('modalVideoIframe').src = '';
+            const modal = document.getElementById('videoModal');
+            const modalVideoIframe = document.getElementById('modalVideoIframe');
+            modal.classList.add('hidden');
+            modalVideoIframe.src = '';
         };
 
         // --- Event Listeners ---
@@ -473,13 +508,22 @@
         });
 
         // --- Initial Load ---
-        fetchAllVideos();
-        loadTags();
-        loadAndRenderSection('แนะนำ', document.getElementById('recommended-container'), 'large-carousel');
-        loadAndRenderSection('ใหม่', document.getElementById('new-videos-container'), 'small-carousel');
-        loadAndRenderSection('พัฒนาตัวเอง', document.getElementById('self-dev-container'), 'small-carousel');
-        loadAndRenderSection('ความรัก', document.getElementById('love-container'), 'small-carousel');
-        loadAndRenderSection('จิตวิทยา', document.getElementById('psychology-container'), 'small-carousel');
+        async function initialLoad() {
+            await fetchAllVideos();
+            await loadTags();
+
+            await Promise.all([
+                loadAndRenderSection('แนะนำ', document.getElementById('recommended-container'), 'large-carousel'),
+                loadAndRenderSection('ใหม่', document.getElementById('new-videos-container'), 'small-carousel'),
+                loadAndRenderSection('พัฒนาตัวเอง', document.getElementById('self-dev-container'), 'small-carousel'),
+                loadAndRenderSection('ความรัก', document.getElementById('love-container'), 'small-carousel'),
+                loadAndRenderSection('จิตวิทยา', document.getElementById('psychology-container'), 'small-carousel')
+            ]);
+
+            setupCarouselControls();
+        }
+
+        initialLoad();
     });
     </script>
 </body>
